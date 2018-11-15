@@ -1,19 +1,31 @@
 #include <Wire.h>
 #include <LiquidCrystal_PCF8574.h>
 #include <SPI.h>
+//#include "SSD1306Ascii.h"
+//#include "SSD1306AsciiWire.h"
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
+#define SEALEVELPRESSURE_HPA (1013.25)
+//#include <Adafruit_GFX.h>
+//#include <Adafruit_SSD1306.h>
 
-#define I2C_ADDR 0x3F
-LiquidCrystal_PCF8574 lcd(I2C_ADDR);  // set the LCD address to 0x27 for a 16 chars and 2 line display
+#define LCD_I2C 0x3F
+#define SSD_I2C 0x3C
+#define DEG_CHAR ((char)223)
+
+LiquidCrystal_PCF8574 lcd(LCD_I2C);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 Adafruit_BME280 bme;
 
+
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+
 void setup() {
-  Serial.begin(115200);
-  Serial.println("LCD...");
+//  Serial.begin(115200);
+//  Serial.println("LCD...");
 
   Wire.begin();
-  Wire.beginTransmission(I2C_ADDR);
+  Wire.beginTransmission(LCD_I2C);
 
   lcd.begin(16, 2); // initialize the lcd
   lcd.setBacklight(170);
@@ -29,12 +41,13 @@ void setup() {
     lcd.clear();
     p("Sensor Found!");
   }
-  delay(5000);
+  delay(1000);
 
-  lcd.setCursor(0, 0);
-  p("Temp=");
-  lcd.setCursor(0, 1);
-  p("Humidity=");
+  //  lcd.setCursor(0, 0);
+  //  p("Temp    = ");
+  //  lcd.setCursor(0, 1);
+  //  p("Humidity= ");
+  //  lcd.home();
 }
 
 void loop() {
@@ -50,13 +63,15 @@ void p(const char* t) {
 }
 
 void printValues(void) {
-  // lcd.home(); //lcd.clear();
-  //p("Temp=");
-  lcd.setCursor(6, 0);
-  lcd.print(bme.readTemperature());
-  lcd.setCursor(10, 1);
-  // p("Humidity=");
-  lcd.print(bme.readHumidity());
-  p('%');
+  double t = bme.readTemperature(),
+         f =  t * 1.8 + 32,
+         h = bme.readHumidity();
+  // Serial.print(F("Temp="));   Serial.print(t); Serial.print(F("ºC, Humidity=")); Serial.println(h);
+  lcd.setCursor(0, 0);
+  lcd.print(" "); lcd.print(t); lcd.print(DEG_CHAR); lcd.print("C/");
+  lcd.print(f); lcd.print(DEG_CHAR); lcd.print("F");
+
+  lcd.setCursor(0, 1);
+  lcd.print(" "); lcd.print(h); p("% Humidity");
 }
 
